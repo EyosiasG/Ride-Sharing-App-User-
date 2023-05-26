@@ -90,10 +90,10 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     String? pickUpLocation =
         Provider.of<AppData>(context).pickUpLocation?.placeName;
-    pickUpLocationController.text = pickUpLocation.toString();
+    pickUpLocationController.text = (pickUpLocation.toString() == 'null') ? 'Retrieving Location...' : pickUpLocation.toString();
     String? destination =
         Provider.of<AppData>(context).dropOffLocation?.placeName;
-    destinationLocationController.text = destination.toString();
+    destinationLocationController.text = (destination.toString() == 'null') ? 'Enter Destination' : destination.toString();
     double? locationLatitude =
         Provider.of<AppData>(context).pickUpLocation?.latitude;
     latitudeController.text = locationLatitude.toString();
@@ -255,6 +255,8 @@ class _DashboardState extends State<Dashboard> {
                                                     userLongPos: longitudeController.text,
                                                     userDestinationLatPos: destinationLatitudeController.text,
                                                     userDestinationLongPos: destinationLongitudeController.text,
+                                                    destinationLocation:  destinationLocationController.text,
+
                                                   )));
                                               },
                                               child: const Text(

@@ -1,12 +1,11 @@
 import 'dart:core';
 import 'dart:core';
 
-import 'package:car_pool_driver/Views/tabPages/available_drivers.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
-import '../../Models/trip.dart';
 import '../../global/global.dart';
+
 
 class TripHistoryTabPage extends StatefulWidget {
   const TripHistoryTabPage({Key? key}) : super(key: key);
@@ -15,44 +14,67 @@ class TripHistoryTabPage extends StatefulWidget {
   State<TripHistoryTabPage> createState() => _TripHistoryTabPageState();
 }
 
-final databaseReference = FirebaseDatabase.instance.ref('trips');
-Future<List<Trip>> getItemsByColor() async {
-  List<Trip> itemList = [];
-  // Get a reference to the Firebase database
+class Trip {
+  String date;
+  String pickUp;
+  String dropOff;
+  String driverId;
+  String seats;
+  String time;
 
 
-  try {
-    // Retrieve all items with the specified color
-    final dataSnapshot = await databaseReference
-        .once();
+  Trip({
+    required this.pickUp,
+    required this.driverId,
+    required this.date,
+    required this.dropOff,
+    required this.seats,
+    required this.time
+  });
+}
+class FirebaseService {
 
-    // Convert the retrieved data to a list of Item objects
+  final databaseReference = FirebaseDatabase.instance.ref('trips');
+  Future<List<Trip>> getItemsByColor(String driverId) async {
+    List<Trip> itemList = [];
+    // Get a reference to the Firebase database
 
-    Map<dynamic, dynamic> values = dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
-    values.forEach((key, value) {
-      final item = Trip(
-          driverID: value['driver_id'],
-          pickUpLatPos: value['locationLatitude'],
-          pickUpLongPos: value['locationLongitude'],
-          dropOffLatPos: value['destinationLatitude'],
-          dropOffLongPos: value['destinationLongitude'],
-          pickUpDistance: 0,
-          dropOffDistance: 0,
-      );
-      itemList.add(item);
-    });
 
-  } catch (e) {
-    // Log the error and return an empty list
-    print('Error: $e');
+    try {
+      // Retrieve all items with the specified color
+      final dataSnapshot = await databaseReference
+          .orderByChild('driver_id')
+          .equalTo(driverId)
+          .once();
+
+      // Convert the retrieved data to a list of Item objects
+
+      Map<dynamic, dynamic> values = dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
+      values.forEach((key, value) {
+        final item = Trip(
+          pickUp: value['pick_up'],
+          driverId: value['driver_id'],
+          date: value['date'],
+          dropOff: value['drop_off'],
+          seats: value['seats'],
+          time: value['time']
+        );
+        itemList.add(item);
+      });
+
+    } catch (e) {
+      // Log the error and return an empty list
+      print('Error: $e');
+    }
+    return itemList;
   }
-  return itemList;
 }
 
 
 class _TripHistoryTabPageState extends State<TripHistoryTabPage> {
-  final GetTrips firebaseService = GetTrips();
+  final FirebaseService firebaseService = FirebaseService();
   List<Trip> trips = [];
+
   @override
   void initState() {
     // TODO: implement initState
@@ -63,7 +85,7 @@ class _TripHistoryTabPageState extends State<TripHistoryTabPage> {
 
 
   Future<void> getTrips() async {
-    List<Trip> trips = await firebaseService.getItemsByColor();
+    List<Trip> trips = await firebaseService.getItemsByColor(currentFirebaseUser!.uid.toString());
     setState(() {
       this.trips = trips;
     });
@@ -80,27 +102,27 @@ class _TripHistoryTabPageState extends State<TripHistoryTabPage> {
                 ListTile(
                   leading: Padding(
                     padding: const EdgeInsets.only(right: 8.0),
-                    child: Text(trips[index].driverID.toString(),
+                    child: Text("FINISHED",
                       style: const TextStyle(
                         fontSize: 18,
                         color: Colors.greenAccent
                       ),),
                   ),
-                  title : Text(trips[index].pickUpLatPos.toString() + ',' + trips[index].pickUpLongPos.toString(),
+                  title : Text(trips[index].pickUp.toString(),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w100,
                     ),),
-                  subtitle:Text(trips[index].dropOffLongPos.toString() +' at ' + trips[index].dropOffLatPos.toString(),
+                  subtitle:Text(trips[index].date.toString() +' at ' + trips[index].time.toString(),
                     style: const TextStyle(
                       fontSize: 14,
                     ),),
 
                   trailing: const Icon(Icons.arrow_forward),
                   onTap: (){
-                    //Navigator.of(context).push(MaterialPageRoute(
-                      //builder: (context) => TripHistoryDetails(item:trips[index]),
-                    //));
+                  //  Navigator.of(context).push(MaterialPageRoute(
+                    //  builder: (context) => TripHistoryDetails(item:trips[index]),
+                   // ));
                   },
                 ),
                 Padding(
