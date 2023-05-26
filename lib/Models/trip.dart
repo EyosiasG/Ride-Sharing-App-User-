@@ -6,6 +6,7 @@ class Trip{
   final String dropOffLongPos;
   final double pickUpDistance;
   final double dropOffDistance;
+  final String destinationLocation;
 
   const Trip({
     required this.driverID,
@@ -15,5 +16,6 @@ class Trip{
     required this.dropOffLongPos,
     required this.pickUpDistance,
     required this.dropOffDistance,
+    required this.destinationLocation,
 });
 }

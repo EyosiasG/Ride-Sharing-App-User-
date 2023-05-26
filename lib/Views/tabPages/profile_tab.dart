@@ -36,35 +36,16 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
             return ListView(
               physics: BouncingScrollPhysics(),
               children: [
-                const SizedBox(height: 15,),
-                const Text(
-                  "My Profile",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold,fontSize: 30),
-                ),
-                const SizedBox(height: 15,),
-
-
+                const SizedBox(height: 20,),
                 ProfileWidget(
                     imagePath: map['driver_image'],
                     onClicked: () async {}),
 
-                const SizedBox(height: 20,),
+                const SizedBox(height: 15,),
                 buildName(),
-                const SizedBox(height: 24,),
-                buildStat(),
-                const SizedBox(height: 20,),
-
-                const Text(
-                  "Car Details",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20),
-                ),
-                ReusableRow(title: 'Car', value: map['car_make'] + ' ' + map['car_model'] + ' ' + map['car_year'], iconData: Icons.car_repair),
-
-                ReusableRow(title: 'Plate Number', value: map['car_plateNo'], iconData: Icons.numbers),
-
-                ReusableRow(title: 'Car Color', value: map['car_color'], iconData: Icons.color_lens),
+                Divider(),
+                const SizedBox(height: 15,),
+                settingsTile(),
 
                 //DriverStats(),
               ],
@@ -129,6 +110,59 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
     ),
   );
 }
+Widget settingsTile() {
+  return Column(children: [
+    Padding(
+      padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
+      child: ListTile(
+        onTap: () {},
+        leading: Icon(Icons.person),
+        title: Text('Edit Account'),
+      ),
+    ),
+    Padding(
+      padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
+      child:  ListTile(
+        onTap: () {},
+        leading: Icon(Icons.notifications),
+        title: Text('Notifications'),
+      ),
+    ),
+    const Divider(
+      endIndent: 18,
+      indent: 18,
+    ),
+    Padding(
+      padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
+      child:  ListTile(
+        onTap: () {},
+        leading: Icon(Icons.feedback),
+        title: Text('Feedback'),
+      ),
+    ),
+    Padding(
+      padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
+      child:  ListTile(
+        onTap: () {},
+        leading: Icon(Icons.receipt),
+        title: Text('Terms & Conditions'),
+      ),
+    ),
+    const Divider(
+      endIndent: 18,
+      indent: 18,
+    ),
+    Padding(
+      padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
+      child:  ListTile(
+        onTap: () {},
+        leading: Icon(Icons.logout),
+        title: Text('Logout'),
+      ),
+    ),
+  ]);
+}
+
 class ReusableRow extends StatelessWidget {
   final String title, value;
   final IconData iconData;
