@@ -1,4 +1,4 @@
-package com.example.car_pool_driver
+package com.example.car_pool_user
 
 import io.flutter.embedding.android.FlutterActivity
 
