@@ -47,7 +47,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:991467052155:android:d88b6824bb858ccf0a16de",
         "android_client_info": {
-          "package_name": "com.example.car_pool_driver"
+          "package_name": "com.example.car_pool_user"
         }
       },
       "oauth_client": [
@@ -55,7 +55,7 @@
           "client_id": "991467052155-mijuvo5f5fob3h16lgnagknfv7ieljjm.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.car_pool_driver",
+            "package_name": "com.example.car_pool_user",
             "certificate_hash": "20c9cc80dc5106af96eba5e1ff2017db52ecf9c2"
           }
         },

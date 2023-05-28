@@ -106,8 +106,9 @@ class _DashboardState extends State<Dashboard> {
     double? destinationLongitude =
         Provider.of<AppData>(context).dropOffLocation?.longitude;
     destinationLongitudeController.text = destinationLongitude.toString();
-
+    int count = 0;
     return Scaffold(
+
       body: Stack(
         children: [
           GoogleMap(
@@ -272,6 +273,43 @@ class _DashboardState extends State<Dashboard> {
                         ),
 
                       ),
+                    ),
+                    Column(
+                      children:<Widget> [
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.635,),
+                        Expanded(
+                            child: ListView.builder(
+                                itemCount: (count == 0) ? 1 : count,
+                                itemBuilder: (context, index){
+                                  if(count == 0){
+                                    return Center(
+                                      child:Column(
+                                        children: [
+                                          Image.asset(
+                                            "images/noTrips.jpg",
+                                            height: 140,
+                                          ),
+                                          SizedBox(height: 5,),
+                                          Text("YOU HAVE NO BOOKED TRIPS FOR NOW!!!",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w500
+                                            ),
+                                          ),
+
+                                        ],
+                                      ),
+                                    );
+                                  }
+                                  else{
+                                    return Center(
+                                        child: Text('sjdaoo')
+                                    );
+                                  }
+
+                                }
+                            )
+                        ),
+                      ],
                     ),
                   ],
                 )),
