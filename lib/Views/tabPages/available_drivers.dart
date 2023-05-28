@@ -1,10 +1,51 @@
+import 'dart:ffi';
 import 'dart:math';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
+import '../../Models/driver.dart';
 import '../../Models/trip.dart';
+class GetDrivers {
+  final databaseReference = FirebaseDatabase.instance.ref('drivers');
+
+  Future<List<Driver>> getDriver() async {
+    List<Driver> itemList = [];
+    // Get a reference to the Firebase database
+
+    try {
+      // Retrieve all items with the specified color
+      final dataSnapshot = await databaseReference.once();
+
+      // Convert the retrieved data to a list of Item objects
+
+      Map<dynamic, dynamic> values =
+      dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
+      values.forEach((key, value) {
+        final item = Driver(
+            id: value['id'],
+            imagePath: value['driver_image'],
+            name: value['name'],
+            email: value['email'],
+            phone: value['phone'],
+            ratings: '4.5',
+            totalMileage: '6.4km',
+            carMake: value['car_make'],
+            carModel: value['car_model'],
+            carYear: value['car_year'],
+            carPlateNo: value['car_plateNo'],
+            carColor: value['car_color']);
+        itemList.add(item);
+      });
+    } catch (e) {
+      // Log the error and return an empty list
+      print('Error: $e');
+    }
+    return itemList;
+  }
+}
 
 class AvailableDrivers extends StatefulWidget {
   final String userLatPos;
@@ -56,6 +97,7 @@ class GetTrips {
           pickUpDistance: 0,
           dropOffDistance: 0,
           destinationLocation: value['destinationLocation'],
+          pickUpLocation: value['pickUpLocation'],
         );
         itemList.add(item);
       });
@@ -69,14 +111,26 @@ class GetTrips {
 
 class _AvailableDriversState extends State<AvailableDrivers> {
   final GetTrips getAllTrips = GetTrips();
+  final GetDrivers getAllDrivers = GetDrivers();
   List<Trip> trips = [];
+  List<Driver> drivers = [];
   List<Trip> closeTrips = [];
+  Driver? dr;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    getDrivers();
     getTrips();
+  }
+
+  Future<void> getDrivers() async {
+    List<Driver> drivers =
+    await getAllDrivers.getDriver();
+    setState(() {
+      this.drivers = drivers;
+    });
   }
 
   Future<void> getTrips() async {
@@ -96,8 +150,11 @@ class _AvailableDriversState extends State<AvailableDrivers> {
     return distance.toString();
   }
 
+
+
   @override
   Widget build(BuildContext context) {
+    Driver dr;
     double rating = 4.5;
     /*double pickUpDistance = 0 , dropOffDistance = 0;
     for(var trip in trips){
@@ -118,178 +175,195 @@ class _AvailableDriversState extends State<AvailableDrivers> {
       }
     }*/
     return Scaffold(
-        backgroundColor: Color(0xFFEDEDED),
-        body: ListView.builder(
-            itemCount: 4,
-            itemBuilder: (context, index) {
-              return InkWell(
-                  child: Container(
-                    margin: EdgeInsets.all(10),
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
+      backgroundColor: const Color(0xFFEDEDED),
+      body: ListView.builder(
+          itemCount: trips.length,
+          itemBuilder: (context, index) {
+            dr = getDriver(trips[index].driverID);
+            double distance = calculateDistance(
+                double.parse(widget.userLatPos),
+                double.parse(widget.userLongPos),
+                double.parse(trips[index].pickUpLatPos),
+                double.parse(trips[index].pickUpLongPos));
+            double arrivalTime = calculateArrivalTime(distance);
+           
+            return Expanded(
+              child: Container(
+                margin: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10)),
+                child: Column(children: [
+                  Row(children: [
+                    Image.asset(
+                      "images/PickUpDestination.png",
+                      width: 40,
+                      height: 50,
                     ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Image.asset(
-                              "images/PickUpDestination.png",
-                              width: 40,
-                              height: 50,
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            constraints: const BoxConstraints(maxWidth: 300),
+                            child: Text(
+                              trips[index].destinationLocation.toString(),
+                              //'Lideta Condominium',
+                              style: const TextStyle(
+                                fontSize: 16,
+                              ),
                             ),
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Lideta Condominium',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  Divider(),
-                                  Text(
-                                    'Nefas Silk Lafto',
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                    ),
-                                  )
-                                ]),
-                          ],
-                        ),
-                        SizedBox(
-                          height: 30,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text('Distance '),
-                                  Text('0.8 kms'),
-                                  SizedBox(
-                                    height: 30,
-                                  ),
-                                ]),
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text('Cost'),
-                                  Text('50 br.'),
-                                  SizedBox(
-                                    height: 30,
-                                  ),
-                                ]),
-                            Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text('Arrival Time'),
-                                  Text('7 mins'),
-                                  SizedBox(
-                                    height: 30,
-                                  ),
-                                ]),
-
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          ),
+                          const Divider(),
+                          Container(
+                            constraints: const BoxConstraints(maxWidth: 300),
+                            child: Text(
+                              trips[index].pickUpLocation.toString(),
+                              //'Nefas Silk Lafto',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                        ])
+                  ]),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('3:00 PM'),
-                                Text('Thursday, March 2023'),
-                              ],
+                            const Text('Distance'),
+                            Text('${distance.toStringAsPrecision(6)} kms'),
+                            const SizedBox(
+                              height: 30,
                             ),
-                            RatingBarIndicator(
-                              itemBuilder: (context, index) => Icon(
-                                Icons.person,
-                                color: Colors.greenAccent,
-                              ),
-                              rating: 3.0,
-                              itemSize: 18,
-                              itemCount: 4,
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 30,),
-                        Divider(),
-                        Row(
+                          ]),
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Row(
+                            const Text('Cost'),
+                            Text('50 br.'),
+                            const SizedBox(
+                              height: 30,
+                            ),
+                          ]),
+                      Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text('Arrival Time'),
+                            Text(arrivalTime.toString() ),
+                            SizedBox(
+                              height: 30,
+                            ),
+                          ]),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: const [
+                          Text('3:00 PM'),
+                          Text('Thursday, March 2023'),
+                        ],
+                      ),
+                      RatingBarIndicator(
+                        itemBuilder: (context, index) => const Icon(
+                          Icons.person,
+                          color: Colors.greenAccent,
+                        ),
+                        rating: 3.0,
+                        itemSize: 18,
+                        itemCount: 4,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  const Divider(),
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: NetworkImage(
+                              dr.imagePath
+                              //'https://img.freepik.com/free-photo/indoor-shot-glad-young-bearded-man-mustache-wears-denim-shirt-smiles-happily_273609-8698.jpg?w=1060&t=st=1684762104~exp=1684762704~hmac=f48dc7b69b41deac29bbf849e5020a36b4e19b7f2c32048e2950f9f6028927bf',
+                            ),
+                            radius: 35,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
                               children: [
-                                CircleAvatar(
-                                  backgroundImage: NetworkImage(
-                                    'https://img.freepik.com/free-photo/indoor-shot-glad-young-bearded-man-mustache-wears-denim-shirt-smiles-happily_273609-8698.jpg?w=1060&t=st=1684762104~exp=1684762704~hmac=f48dc7b69b41deac29bbf849e5020a36b4e19b7f2c32048e2950f9f6028927bf',
-                                  ),
-                                  radius: 35,
+                                Text(dr.name,
+                                    //'Abebe Kebede',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    )),
+                                Row(
+                                  children: [
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          0.0, 0, 3.0, 0),
+                                      child: Text(dr.carColor),
+                                    ),
+                                    Text('${dr.carMake} ${dr.carModel}'),
+                                  ],
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(left: 8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text('Abebe Kebede',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                          )),
-                                      Row(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.fromLTRB(
-                                                0.0, 0, 3.0, 0),
-                                            child: Text('Blue'),
-                                          ),
-                                          Text('Toyota Vitz'),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10.0),
-                                        child: RatingBarIndicator(
-                                          itemBuilder: (context, index) => Icon(
-                                            Icons.star,
-                                            color: Colors.amber,
-                                          ),
-                                          rating: rating,
-                                          itemSize: 18,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                            Spacer(),
-                            ElevatedButton(
-                                onPressed: () {},
-                                child: Text(
-                                  'Book Seat',
-                                  style: TextStyle(
-                                    fontSize: 16,
+                                  padding: const EdgeInsets.only(right: 10.0),
+                                  child: RatingBarIndicator(
+                                    itemBuilder: (context, index) => const Icon(
+                                      Icons.star,
+                                      color: Colors.amber,
+                                    ),
+                                    rating: rating,
+                                    itemSize: 18,
                                   ),
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                  primary: Colors.greenAccent,
-                                  elevation: 3,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10)),
-                                )),
-                          ],
-                        ),
-                      ],
-                    ),
+                              ],
+                            ),
+                          )
+                        ],
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                          onPressed: () {
+
+                          },
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.greenAccent,
+                            elevation: 3,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: const Text(
+                            'Book Seat',
+                            style: TextStyle(
+                              fontSize: 16,
+                            ),),
+                      ),
+                    ],
                   ),
-                  onTap: () {});
-            }));
+                ]),
+              ),
+            );
+          }),
+    );
+
 
     /*Scaffold(
      body:ListView.builder(
@@ -358,4 +432,28 @@ class _AvailableDriversState extends State<AvailableDrivers> {
     // Helper function to convert degrees to radians
     return degrees * pi / 180;
   }
+
+  Driver getDriver(String id){
+    Driver nullDriver = const Driver(
+        id: '',
+        imagePath: '',
+        name: '',
+        email: '',
+        phone: '',
+        ratings: '', totalMileage: '', carMake: '', carModel: '', carYear: '', carColor: '', carPlateNo: '');
+    for(var driver in drivers){
+      if(driver.id == id) {
+        return driver;
+      }
+    }
+    return nullDriver;
+  }
+
+  double calculateArrivalTime(double distance){
+    double velocity = 30 , arrivalTime;
+    arrivalTime = (distance / velocity) * 60;
+    return arrivalTime;
+  }
+
+
 }

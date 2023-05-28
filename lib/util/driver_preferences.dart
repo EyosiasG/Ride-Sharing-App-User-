@@ -8,6 +8,6 @@ class DriverPreferences {
     email: 'ab@gmail.com',
     phone: '0911344567',
     ratings: '4.5',
-    totalMileage: '456km'
+    totalMileage: '456km', carMake: '', carModel: '', carYear: '', carColor: '', carPlateNo: '', id: ''
   );
 }
