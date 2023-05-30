@@ -1,4 +1,5 @@
 class Trip{
+  final String tripID;
   final String driverID;
   final String pickUpLatPos;
   final String pickUpLongPos;
@@ -10,6 +11,7 @@ class Trip{
   final String pickUpLocation;
 
   const Trip({
+    required this.tripID,
     required this.driverID,
     required this.pickUpLatPos,
     required this.pickUpLongPos,
