@@ -54,6 +54,8 @@ dependencies:
   jumping_dot: ^0.0.6
   smooth_star_rating: ^1.1.1
   flutter_rating_bar: ^4.0.1
+  firebase_messaging: ^14.6.1
+  flutter_local_notifications: ^14.1.0
 
 dev_dependencies:
   flutter_test:

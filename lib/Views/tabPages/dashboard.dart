@@ -289,8 +289,8 @@ class _DashboardState extends State<Dashboard> {
                                             "images/noTrips.jpg",
                                             height: 140,
                                           ),
-                                          SizedBox(height: 5,),
-                                          Text("YOU HAVE NO BOOKED TRIPS FOR NOW!!!",
+                                          const SizedBox(height: 5,),
+                                          const Text("YOU HAVE NO BOOKED TRIPS FOR NOW!!!",
                                             style: TextStyle(
                                                 fontWeight: FontWeight.w500
                                             ),
@@ -554,7 +554,7 @@ class _DashboardState extends State<Dashboard> {
     int index = 0;
     final _auth = FirebaseAuth.instance;
     Timer timestamp;
-
+    String tripId = DateTime.now().microsecondsSinceEpoch.toString();
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       try {
@@ -563,7 +563,8 @@ class _DashboardState extends State<Dashboard> {
             builder: (BuildContext context) {
               return LoadingScreen(message: "Adding to the pool...");
             });
-        await tripsRef.child("${DateTime.now().microsecondsSinceEpoch}").set({
+        await tripsRef.child(tripId).set({
+          "triId":tripId,
           "pickUpLocation": pickUpLocationController.text.toString(),
           "destinationLocation": destinationLocationController.text.toString(),
           "locationLatitude": latitudeController.text,

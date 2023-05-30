@@ -8,6 +8,7 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 import '../../Models/driver.dart';
 import '../../Models/trip.dart';
+import '../../global/global.dart';
 class GetDrivers {
   final databaseReference = FirebaseDatabase.instance.ref('drivers');
 
@@ -89,6 +90,7 @@ class GetTrips {
           dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
       values.forEach((key, value) {
         final item = Trip(
+          tripID: value['tripID'],
           driverID: value['driver_id'],
           pickUpLatPos: value['locationLatitude'],
           pickUpLongPos: value['locationLongitude'],
@@ -270,9 +272,9 @@ class _AvailableDriversState extends State<AvailableDrivers> {
                       Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
+                        children:[
                           Text('3:00 PM'),
-                          Text('Thursday, March 2023'),
+                          Text(trips[index].tripID.toString()),
                         ],
                       ),
                       RatingBarIndicator(
@@ -342,7 +344,7 @@ class _AvailableDriversState extends State<AvailableDrivers> {
                       const Spacer(),
                       ElevatedButton(
                           onPressed: () {
-
+                            requestRide(trips[index]);
                           },
                           style: ElevatedButton.styleFrom(
                             primary: Colors.greenAccent,
@@ -351,7 +353,7 @@ class _AvailableDriversState extends State<AvailableDrivers> {
                                 borderRadius: BorderRadius.circular(10)),
                           ),
                           child: const Text(
-                            'Book Seat',
+                            'Request Ride',
                             style: TextStyle(
                               fontSize: 16,
                             ),),
@@ -455,5 +457,13 @@ class _AvailableDriversState extends State<AvailableDrivers> {
     return arrivalTime;
   }
 
+  void requestRide(Trip trip) {
+    FirebaseDatabase.instance.reference().child("requests").push().set({
+      "tripID": trip.tripID,
+      "driverID":trip.driverID,
+      "userID":currentFirebaseUser!.uid.toString(),
+      "status":"pending",
+    });
+  }
 
 }
