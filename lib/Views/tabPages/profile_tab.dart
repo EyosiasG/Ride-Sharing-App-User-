@@ -1,3 +1,4 @@
+import 'package:car_pool_driver/Views/tabPages/support_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +14,8 @@ class ProfileTabPage extends StatefulWidget {
 }
 
 class _ProfileTabPageState extends State<ProfileTabPage> {
-  //final driver = DriverPreferences.myDriver;
   final auth = FirebaseAuth.instance;
-  final ref = FirebaseDatabase.instance.ref('drivers');
+  final ref = FirebaseDatabase.instance.ref('users');
   late String name,email;
 
   @override
@@ -38,14 +38,14 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
               children: [
                 const SizedBox(height: 20,),
                 ProfileWidget(
-                    imagePath: map['driver_image'],
+                    imagePath: map['user_image'],
                     onClicked: () async {}),
 
                 const SizedBox(height: 15,),
                 buildName(),
                 Divider(),
                 const SizedBox(height: 15,),
-                settingsTile(),
+                settingsTile(context),
 
                 //DriverStats(),
               ],
@@ -110,7 +110,7 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
     ),
   );
 }
-Widget settingsTile() {
+Widget settingsTile(BuildContext context) {
   return Column(children: [
     Padding(
       padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
@@ -135,7 +135,10 @@ Widget settingsTile() {
     Padding(
       padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
       child:  ListTile(
-        onTap: () {},
+        onTap: () {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => MyFeedback()));
+        },
         leading: Icon(Icons.feedback),
         title: Text('Feedback'),
       ),

@@ -1,4 +1,5 @@
 import 'package:car_pool_driver/Constants/widgets/loading.dart';
+import 'package:car_pool_driver/Views/tabPages/bookedTripDetails.dart';
 import 'package:car_pool_driver/config_map.dart';
 import 'package:car_pool_driver/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,14 +10,51 @@ import 'dart:async';
 import 'package:car_pool_driver/Constants/styles/colors.dart';
 import 'package:car_pool_driver/Views/data%20handler/app_data.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
-import 'package:fluttericon/entypo_icons.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-import '../../Constants/widgets/toast.dart';
+
+import '../../Models/request.dart';
+import '../../Models/trip.dart';
+import '../../global/global.dart';
 import '../assistants/assistant_methods.dart';
 import '../trips/search_screen.dart';
 import 'available_drivers.dart';
+
+class GetRequests {
+  final databaseReference = FirebaseDatabase.instance.ref('requests');
+
+  Future<List<Request>> getRequests() async {
+    List<Request> itemList = [];
+    // Get a reference to the Firebase database
+
+    try {
+      // Retrieve all items with the specified color
+      final dataSnapshot = await databaseReference
+          .orderByChild('userID')
+          .equalTo(currentFirebaseUser!.uid.toString())
+          .once();
+
+      // Convert the retrieved data to a list of Item objects
+
+      Map<dynamic, dynamic> values =
+          dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
+      values.forEach((key, value) {
+        final item = Request(
+            requestID: value['requestID'],
+            tripID: value['tripID'],
+            driverID: value['driverID'],
+            userID: value['userID'],
+            status: value['status']);
+        itemList.add(item);
+      });
+    } catch (e) {
+      // Log the error and return an empty list
+      print('Error: $e');
+    }
+    return itemList;
+  }
+}
 
 class Dashboard extends StatefulWidget {
   static const String idScreen = "dashboard";
@@ -28,6 +66,9 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  final GetRequests getRequests = GetRequests();
+  List<Request> requests = [];
+  List<Request> acceptedRequest = [];
   static const String idScreen = "dashboard";
   User? currentUser;
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
@@ -59,6 +100,23 @@ class _DashboardState extends State<Dashboard> {
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getRequest();
+  }
+
+  Future<void> getRequest() async {
+    List<Request> requests = await getRequests.getRequests();
+    setState(() {
+      this.requests = requests;
+      for (var r in requests) {
+        if (r.status == 'accepted') acceptedRequest.add(r);
+      }
+    });
+  }
+
   void locatePosition() async {
     LocationPermission permission;
     permission = await Geolocator.checkPermission();
@@ -82,18 +140,17 @@ class _DashboardState extends State<Dashboard> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     String? pickUpLocation =
         Provider.of<AppData>(context).pickUpLocation?.placeName;
-    pickUpLocationController.text = (pickUpLocation.toString() == 'null') ? 'Retrieving Location...' : pickUpLocation.toString();
+    pickUpLocationController.text = (pickUpLocation.toString() == 'null')
+        ? 'Retrieving Location...'
+        : pickUpLocation.toString();
     String? destination =
         Provider.of<AppData>(context).dropOffLocation?.placeName;
-    destinationLocationController.text = (destination.toString() == 'null') ? 'Enter Destination' : destination.toString();
+    destinationLocationController.text = (destination.toString() == 'null')
+        ? 'Enter Destination'
+        : destination.toString();
     double? locationLatitude =
         Provider.of<AppData>(context).pickUpLocation?.latitude;
     latitudeController.text = locationLatitude.toString();
@@ -108,7 +165,6 @@ class _DashboardState extends State<Dashboard> {
     destinationLongitudeController.text = destinationLongitude.toString();
     int count = 0;
     return Scaffold(
-
       body: Stack(
         children: [
           GoogleMap(
@@ -137,7 +193,7 @@ class _DashboardState extends State<Dashboard> {
             top: 0.0,
             right: 0.0,
             bottom: 0.0,
-            child:Container(
+            child: Container(
                 color: Colors.white,
                 child: Stack(
                   children: [
@@ -150,297 +206,250 @@ class _DashboardState extends State<Dashboard> {
                         ),
                       ),
                     ),
-
                     Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.all(25.0),
                       child: Align(
                         child: Container(
-                          height: 270,
+                          height: 250,
                           child: Card(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
                             elevation: 10.0,
-                            child:Column(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      children:
-                                      <Widget>[
-                                        Image.asset(
-                                          "images/PickUpDestination.png",
-                                          width: 20,
-                                          height: 160,
-                                        ),
-                                        Flexible(
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(left: 15.0),
-                                            child: Column(
-                                              children: [
-                                                Padding(
-                                                  padding: const EdgeInsets.fromLTRB(8.0, 15.0, 8.0, 8.0),
-                                                  child: TextFormField(
-                                                    controller: pickUpLocationController,
-                                                    decoration: const InputDecoration(
-                                                        enabledBorder: UnderlineInputBorder(
+                            child: Column(children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: <Widget>[
+                                    Image.asset(
+                                      "images/PickUpDestination.png",
+                                      width: 20,
+                                      height: 160,
+                                    ),
+                                    Flexible(
+                                      child: Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 15.0),
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      8.0, 15.0, 8.0, 8.0),
+                                              child: TextFormField(
+                                                controller:
+                                                    pickUpLocationController,
+                                                decoration:
+                                                    const InputDecoration(
+                                                        enabledBorder:
+                                                            UnderlineInputBorder(
                                                           borderSide: BorderSide(
-                                                              color: Colors.greenAccent),
+                                                              color: Colors
+                                                                  .greenAccent),
                                                         ),
-                                                        focusedBorder: UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.greenAccent)),
+                                                        focusedBorder:
+                                                            UnderlineInputBorder(
+                                                                borderSide: BorderSide(
+                                                                    color: Colors
+                                                                        .greenAccent)),
                                                         labelText: "Pick-Up",
                                                         hintStyle: TextStyle(
                                                           color: Colors.grey,
                                                           fontSize: 16,
                                                         )),
-                                                    style: const TextStyle(fontSize: 17.0),
-                                                    readOnly: true,
-                                                  ),
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.fromLTRB(8.0, 3.0, 8.0, 8.0),
-                                                  child: TextFormField(
-                                                    controller: destinationLocationController,
-                                                    decoration: const InputDecoration(
-                                                        enabledBorder: UnderlineInputBorder(
+                                                style: const TextStyle(
+                                                    fontSize: 14.0),
+                                                readOnly: true,
+                                              ),
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      8.0, 3.0, 8.0, 8.0),
+                                              child: TextFormField(
+                                                controller:
+                                                    destinationLocationController,
+                                                decoration:
+                                                    const InputDecoration(
+                                                        enabledBorder:
+                                                            UnderlineInputBorder(
                                                           borderSide: BorderSide(
-                                                              color: Colors.greenAccent),
+                                                              color: Colors
+                                                                  .greenAccent),
                                                         ),
-                                                        focusedBorder: UnderlineInputBorder(
-                                                            borderSide: BorderSide(
-                                                                color: Colors.greenAccent)),
+                                                        focusedBorder:
+                                                            UnderlineInputBorder(
+                                                                borderSide: BorderSide(
+                                                                    color: Colors
+                                                                        .greenAccent)),
                                                         labelText: 'Drop-Off',
                                                         hintStyle: TextStyle(
                                                           color: Colors.grey,
                                                           fontSize: 16,
                                                         )),
-                                                    style: const TextStyle(fontSize: 17.0),
-                                                    readOnly: true,
-                                                    onTap: () async {
-                                                      var res = await Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                              builder: ((context) =>
+                                                style: const TextStyle(
+                                                    fontSize: 14.0),
+                                                readOnly: true,
+                                                onTap: () async {
+                                                  var res = await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                          builder: ((context) =>
                                                               const SearchScreen())));
-                                                      if (res == "obtainDirection") {
-                                                        await getPlaceDirection();
-                                                      }
-                                                    },
-                                                  ),
-                                                ),
-                                                SizedBox(height: 10,)
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Align(
-                                      alignment: Alignment.bottomCenter,
-                                      child: Container(
-                                          padding: const EdgeInsets.all(0),
-                                          height: 70,
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                              style: ButtonStyle(
-                                                elevation: MaterialStateProperty.all(4.0),
-                                                backgroundColor:
-                                                MaterialStateProperty.all(Colors.greenAccent),
+                                                  if (res ==
+                                                      "obtainDirection") {
+                                                    await getPlaceDirection();
+                                                  }
+                                                },
                                               ),
-                                              onPressed: () {
-                                                Navigator.of(context).push(MaterialPageRoute(
-                                                  builder: (context) => AvailableDrivers(
-                                                    userLatPos: latitudeController.text,
-                                                    userLongPos: longitudeController.text,
-                                                    userDestinationLatPos: destinationLatitudeController.text,
-                                                    userDestinationLongPos: destinationLongitudeController.text,
-                                                    destinationLocation:  destinationLocationController.text,
-
-                                                  )));
-                                              },
-                                              child: const Text(
-                                                "Search",
-                                                style: TextStyle(
-                                                    fontWeight: FontWeight.bold, fontSize: 18),
-                                              ))),
+                                            ),
+                                            SizedBox(
+                                              height: 10,
+                                            )
+                                          ],
+                                        ),
+                                      ),
                                     ),
-                                  )
-                                ]),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                      padding: const EdgeInsets.all(0),
+                                      height: 80,
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                          style: ButtonStyle(
+                                            elevation:
+                                                MaterialStateProperty.all(4.0),
+                                            backgroundColor:
+                                                MaterialStateProperty.all(
+                                                    Colors.greenAccent),
+                                          ),
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                                MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        AvailableDrivers(
+                                                          userLatPos:
+                                                              latitudeController
+                                                                  .text,
+                                                          userLongPos:
+                                                              longitudeController
+                                                                  .text,
+                                                          userDestinationLatPos:
+                                                              destinationLatitudeController
+                                                                  .text,
+                                                          userDestinationLongPos:
+                                                              destinationLongitudeController
+                                                                  .text,
+                                                          destinationLocation:
+                                                              destinationLocationController
+                                                                  .text,
+                                                        )));
+                                          },
+                                          child: const Text(
+                                            "Search",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18),
+                                          ))),
+                                ),
+                              )
+                            ]),
                           ),
-
                         ),
-
                       ),
                     ),
                     Column(
-                      children:<Widget> [
-                        SizedBox(height: MediaQuery.of(context).size.height * 0.635,),
+                      children: <Widget>[
+                        SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.625,
+                        ),
                         Expanded(
                             child: ListView.builder(
-                                itemCount: (count == 0) ? 1 : count,
-                                itemBuilder: (context, index){
-                                  if(count == 0){
+                                itemCount: (acceptedRequest.length == 0)
+                                    ? 1
+                                    : acceptedRequest.length,
+                                itemBuilder: (context, index) {
+                                  if (acceptedRequest.length == 0) {
                                     return Center(
-                                      child:Column(
+                                      child: Column(
                                         children: [
                                           Image.asset(
                                             "images/noTrips.jpg",
                                             height: 140,
                                           ),
-                                          const SizedBox(height: 5,),
-                                          const Text("YOU HAVE NO BOOKED TRIPS FOR NOW!!!",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w500
-                                            ),
+                                          const SizedBox(
+                                            height: 5,
                                           ),
+                                          const Text(
+                                            "YOU HAVE NO BOOKED TRIPS FOR NOW!!!",
+                                            style: TextStyle(
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  } else {
+                                    Future<String?> pickUp = getPickUpLoctionString(acceptedRequest[index]);
 
+                                    return Padding(
+                                      padding: const EdgeInsets.only(left:25.0, right: 20.0),
+                                      child: Column(
+                                        children: [
+                                          ListTile(
+                                            title : FutureBuilder<String?>(
+                                              future: pickUp,
+                                              builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
+                                                if (snapshot.hasData) {
+                                                  return Text('To: ${snapshot.data}' ?? '',
+                                                  style: TextStyle(
+                                                    fontSize: 14
+                                                  ),);
+                                                } else {
+                                                  return Text('Retrieving Location...');
+                                                }
+                                              },
+                                            ),
+                                            subtitle:Text("3:00 PM",
+                                              style: const TextStyle(
+                                                fontSize: 14,
+                                              ),),
+
+                                            trailing: const Icon(Icons.navigate_next),
+                                            onTap: (){
+                                               Navigator.of(context).push(MaterialPageRoute(
+                                               builder: (context) => MyBookedTrips(request:acceptedRequest[index]),
+                                               ));
+                                            },
+                                          ),
+                                          Divider(),
                                         ],
                                       ),
                                     );
                                   }
-                                  else{
-                                    return Center(
-                                        child: Text('sjdaoo')
-                                    );
-                                  }
-
-                                }
-                            )
-                        ),
+                                })),
                       ],
                     ),
                   ],
                 )),
-
           ),
-
         ],
       ),
     );
   }
 
-  Future<void> _saveToFirebase(BuildContext context) async {
-    String dropdownvalue = '1 passenger';
-    var currentSelectedValue;
-    return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Center(child: Text("Add a pool")),
-            content: SingleChildScrollView(
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: pickUpLocationController,
-                      enabled: false,
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        labelText:
-                            Provider.of<AppData>(context).pickUpLocation != null
-                                ? Provider.of<AppData>(context)
-                                    .pickUpLocation!
-                                    .placeName
-                                : 'Wait while fetching your location',
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 13.0,
-                    ),
-                    TextFormField(
-                      controller: destinationLocationController,
-                      enabled: false,
-                      decoration: InputDecoration(
-                        border: const OutlineInputBorder(),
-                        labelText:
-                            Provider.of<AppData>(context).dropOffLocation !=
-                                    null
-                                ? Provider.of<AppData>(context)
-                                    .dropOffLocation!
-                                    .placeName
-                                : 'Wait for fetch',
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 13.0,
-                    ),
-                    ButtonTheme(
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) =>
-                              value == null ? 'Passengers' : null,
-                          value: currentSelectedValue,
-                          hint: const Text('Passengers'),
-                          onChanged: (newValue) {
-                            setState(() {
-                              currentSelectedValue = newValue;
-                              this.passengers = newValue!;
-                            });
-                          },
-                          items: <String>[
-                            '1 Passenger',
-                            '2 Passengers',
-                            '3 Passengers',
-                            '4 Passengers',
-                          ].map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 13.0,
-                    ),
-                    TextFormField(
-                      controller: priceController,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        labelText: 'Price per passenger',
-                      ),
-                      onChanged: (value) {
-                        this.price = value;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            actions: <Widget>[
-              MaterialButton(
-                color: Colors.red,
-                textColor: Colors.white,
-                child: const Text('Cancel'),
-                onPressed: () {
-                  setState(() {
-                    Navigator.pop(context);
-                  });
-                },
-              ),
-              MaterialButton(
-                color: Colors.green,
-                textColor: Colors.white,
-                child: const Text('Save'),
-                onPressed: () {
-                  setState(() {
-                    _saveCarPool();
-                    Navigator.pop(context);
-                  });
-                },
-              ),
-            ],
-          );
-        });
+  Future<String> getPickUpLoctionString(Request request) async {
+    final ref = FirebaseDatabase.instance.ref();
+    final snapshot = await ref.child('trips/${request.tripID}/destinationLocation').get();
+    if (snapshot.exists) {
+      return snapshot.value.toString();
+    } else {
+      return '';
+    }
   }
-
   Future<void> getPlaceDirection() async {
     var initialPos =
         Provider.of<AppData>(context, listen: false).pickUpLocation;
@@ -468,9 +477,7 @@ class _DashboardState extends State<Dashboard> {
             .add(LatLng(pointLatLng.latitude, pointLatLng.longitude));
       });
     }
-
     polylineSet.clear();
-
     setState(() {
       Polyline polyline = Polyline(
         color: Colors.pink,
@@ -548,42 +555,5 @@ class _DashboardState extends State<Dashboard> {
       circlesSet.add(pickUpLocCircle);
       circlesSet.add(dropOffLocCircle);
     });
-  }
-
-  Future<void> _saveCarPool() async {
-    int index = 0;
-    final _auth = FirebaseAuth.instance;
-    Timer timestamp;
-    String tripId = DateTime.now().microsecondsSinceEpoch.toString();
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      try {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return LoadingScreen(message: "Adding to the pool...");
-            });
-        await tripsRef.child(tripId).set({
-          "triId":tripId,
-          "pickUpLocation": pickUpLocationController.text.toString(),
-          "destinationLocation": destinationLocationController.text.toString(),
-          "locationLatitude": latitudeController.text,
-          "locationLongitude": longitudeController.text,
-          "destinationLatitude": destinationLatitudeController.text,
-          "destinationLongitude": destinationLongitudeController.text,
-          "price": price,
-          "passengers": passengers,
-          "driver_id": _auth.currentUser?.uid.toString(),
-        });
-        Navigator.pop(context);
-        // ignore: use_build_context_synchronously
-        displayToastMessage(
-            "Congratulations,your pool has been added", context);
-      } catch (ex) {
-        print("Your error is $ex");
-        Navigator.pop(context);
-        displayToastMessage("Pool has not been added", context);
-      }
-    }
   }
 }
