@@ -9,6 +9,8 @@ class Trip{
   final double dropOffDistance;
   final String destinationLocation;
   final String pickUpLocation;
+  final String price;
+  final List<String> userIDs;
 
   const Trip({
     required this.tripID,
@@ -20,6 +22,8 @@ class Trip{
     required this.pickUpDistance,
     required this.dropOffDistance,
     required this.destinationLocation,
-    required this.pickUpLocation
+    required this.pickUpLocation,
+    required this.userIDs,
+    required this.price
 });
 }

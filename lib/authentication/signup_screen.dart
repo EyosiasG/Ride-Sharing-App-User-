@@ -88,7 +88,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         .child('${DateTime.now().toIso8601String() + }');
 */
     final imageUploadTask = await _storage
-        .ref('driverImages/${firebaseUser?.uid}.jpg')
+        .ref('userImages/${firebaseUser?.uid}.jpg')
         .putFile(_userImage!);
     final userImageUrl = await imageUploadTask.ref.getDownloadURL();
 
@@ -100,7 +100,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         "name" : nameTextEditingController.text.trim(),
         "email": emailTextEditingController.text.trim(),
         "phone": phoneTextEditingController.text.trim(),
-        "driver_image": userImageUrl,
+        "user_image": userImageUrl,
       };
 
       DatabaseReference driverRef = FirebaseDatabase.instance.ref("users");
@@ -288,12 +288,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 10,),
-                Text('Car Details',
-                  textAlign: TextAlign.left,
-                  style: TextStyle(
-
-                  ),),
                 const SizedBox(height: 5,),
                 SizedBox(
                   height: 50,

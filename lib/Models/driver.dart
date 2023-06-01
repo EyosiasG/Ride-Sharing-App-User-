@@ -3,7 +3,7 @@ import 'package:firebase_database/firebase_database.dart';
 class Driver{
   final String id;
   final String imagePath;
-  final String name;
+   final String name;
   final String email;
   final String phone;
   final String ratings;
@@ -30,6 +30,7 @@ const Driver({
   required this.carPlateNo,
 
 });
+
 }
 
 
