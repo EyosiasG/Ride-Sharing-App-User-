@@ -11,6 +11,10 @@ class Trip{
   final String pickUpLocation;
   final String price;
   final List<String> userIDs;
+  final String date;
+  final String time;
+  final String availableSeats;
+  final String passengers;
 
   const Trip({
     required this.tripID,
@@ -24,6 +28,10 @@ class Trip{
     required this.destinationLocation,
     required this.pickUpLocation,
     required this.userIDs,
-    required this.price
+    required this.price,
+    required this.date,
+    required this.time,
+    required this.availableSeats,
+    required this.passengers,
 });
 }

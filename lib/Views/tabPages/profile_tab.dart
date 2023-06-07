@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 
+import '../../authentication/login_screen.dart';
 import '../../global/global.dart';
 import '../../widgets/profile_widget.dart';
 
@@ -27,23 +28,23 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
           builder: (context, AsyncSnapshot snapshot){
 
           if(!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           else if(snapshot.hasData){
             Map<dynamic, dynamic> map = snapshot.data.snapshot.value;
             name = map['name'];
             email = map['email'];
             return ListView(
-              physics: BouncingScrollPhysics(),
+              physics: const BouncingScrollPhysics(),
               children: [
                 const SizedBox(height: 20,),
                 ProfileWidget(
-                    imagePath: map['user_image'],
+                    imagePath: map['userImage'],
                     onClicked: () async {}),
 
                 const SizedBox(height: 15,),
                 buildName(),
-                Divider(),
+                const Divider(),
                 const SizedBox(height: 15,),
                 settingsTile(context),
 
@@ -85,9 +86,9 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly, //Center Row contents horizontally,
       children: [
         Row(
-          children: [
+          children: const [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(8.0),
               child: Icon(Icons.star, color: Colors.yellow),
             ),
             Text(
@@ -98,9 +99,9 @@ class _ProfileTabPageState extends State<ProfileTabPage> {
           ],
         ),
         Row(
-          children: [
+          children: const [
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding: EdgeInsets.all(8.0),
               child: Text('325'),
             ),
             Text('ratings'),
@@ -116,16 +117,16 @@ Widget settingsTile(BuildContext context) {
       padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
       child: ListTile(
         onTap: () {},
-        leading: Icon(Icons.person),
-        title: Text('Edit Account'),
+        leading: const Icon(Icons.person),
+        title: const Text('Edit Account'),
       ),
     ),
     Padding(
       padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
       child:  ListTile(
         onTap: () {},
-        leading: Icon(Icons.notifications),
-        title: Text('Notifications'),
+        leading: const Icon(Icons.notifications),
+        title: const Text('Notifications'),
       ),
     ),
     const Divider(
@@ -137,18 +138,18 @@ Widget settingsTile(BuildContext context) {
       child:  ListTile(
         onTap: () {
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => MyFeedback()));
+              builder: (context) => const MyFeedback()));
         },
-        leading: Icon(Icons.feedback),
-        title: Text('Feedback'),
+        leading: const Icon(Icons.feedback),
+        title: const Text('Feedback'),
       ),
     ),
     Padding(
       padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
       child:  ListTile(
         onTap: () {},
-        leading: Icon(Icons.receipt),
-        title: Text('Terms & Conditions'),
+        leading: const Icon(Icons.receipt),
+        title: const Text('Terms & Conditions'),
       ),
     ),
     const Divider(
@@ -158,9 +159,13 @@ Widget settingsTile(BuildContext context) {
     Padding(
       padding: const EdgeInsets.fromLTRB(8, 1, 8, 8),
       child:  ListTile(
-        onTap: () {},
-        leading: Icon(Icons.logout),
-        title: Text('Logout'),
+        onTap: () {
+          fAuth.signOut();
+          Navigator.pop(context);
+          Navigator.push(context, MaterialPageRoute(builder: (c)=> LoginScreen()));
+        },
+        leading: const Icon(Icons.logout),
+        title: const Text('Logout'),
       ),
     ),
   ]);
@@ -181,7 +186,7 @@ class ReusableRow extends StatelessWidget {
           ListTile(
             title:Text(title),
             leading: Icon(iconData),
-            trailing: Text(value, style: TextStyle(fontWeight: FontWeight.bold)),
+            trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
 
           )
         ],
