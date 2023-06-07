@@ -1,21 +1,15 @@
 import 'package:car_pool_driver/Constants/widgets/loading.dart';
 import 'package:car_pool_driver/Views/tabPages/bookedTripDetails.dart';
-import 'package:car_pool_driver/config_map.dart';
-import 'package:car_pool_driver/main.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:car_pool_driver/Constants/styles/colors.dart';
 import 'package:car_pool_driver/Views/data%20handler/app_data.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:provider/provider.dart';
-
 import '../../Models/request.dart';
-import '../../Models/trip.dart';
 import '../../global/global.dart';
 import '../assistants/assistant_methods.dart';
 import '../trips/search_screen.dart';
@@ -69,7 +63,6 @@ class _DashboardState extends State<Dashboard> {
   final GetRequests getRequests = GetRequests();
   List<Request> requests = [];
   List<Request> acceptedRequest = [];
-  static const String idScreen = "dashboard";
   User? currentUser;
   final Completer<GoogleMapController> _controllerGoogleMap = Completer();
   late GoogleMapController newgoogleMapController;
@@ -83,7 +76,7 @@ class _DashboardState extends State<Dashboard> {
   late Position currentPosition;
   var geoLocator = Geolocator();
   double bottomPaddingMap = 0;
-
+  bool isLoading = false;
   String? price;
 
   TextEditingController pickUpLocationController = TextEditingController();
@@ -92,11 +85,9 @@ class _DashboardState extends State<Dashboard> {
   TextEditingController latitudeController = TextEditingController();
   TextEditingController longitudeController = TextEditingController();
   TextEditingController destinationLatitudeController = TextEditingController();
-  TextEditingController destinationLongitudeController =
-      TextEditingController();
+  TextEditingController destinationLongitudeController = TextEditingController();
 
   late String passengers;
-  final _formKey = GlobalKey<FormState>();
   Set<Marker> markersSet = {};
   Set<Circle> circlesSet = {};
 
@@ -104,7 +95,12 @@ class _DashboardState extends State<Dashboard> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getRequest();
+    isLoading = true;
+    getRequest().then((_) {
+      setState(() {
+        isLoading = false;
+      });
+    });
   }
 
   Future<void> getRequest() async {
@@ -163,7 +159,6 @@ class _DashboardState extends State<Dashboard> {
     double? destinationLongitude =
         Provider.of<AppData>(context).dropOffLocation?.longitude;
     destinationLongitudeController.text = destinationLongitude.toString();
-    int count = 0;
     return Scaffold(
       body: Stack(
         children: [
@@ -209,7 +204,7 @@ class _DashboardState extends State<Dashboard> {
                     Padding(
                       padding: const EdgeInsets.all(25.0),
                       child: Align(
-                        child: Container(
+                        child: SizedBox(
                           height: 250,
                           child: Card(
                             shape: RoundedRectangleBorder(
@@ -302,7 +297,7 @@ class _DashboardState extends State<Dashboard> {
                                                 },
                                               ),
                                             ),
-                                            SizedBox(
+                                            const SizedBox(
                                               height: 10,
                                             )
                                           ],
@@ -367,70 +362,92 @@ class _DashboardState extends State<Dashboard> {
                         SizedBox(
                           height: MediaQuery.of(context).size.height * 0.625,
                         ),
-                        Expanded(
-                            child: ListView.builder(
-                                itemCount: (acceptedRequest.length == 0)
-                                    ? 1
-                                    : acceptedRequest.length,
-                                itemBuilder: (context, index) {
-                                  if (acceptedRequest.length == 0) {
-                                    return Center(
-                                      child: Column(
-                                        children: [
-                                          Image.asset(
-                                            "images/noTrips.jpg",
-                                            height: 140,
-                                          ),
-                                          const SizedBox(
-                                            height: 5,
-                                          ),
-                                          const Text(
-                                            "YOU HAVE NO BOOKED TRIPS FOR NOW!!!",
-                                            style: TextStyle(
-                                                fontWeight: FontWeight.w500),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  } else {
-                                    Future<String?> pickUp = getPickUpLoctionString(acceptedRequest[index]);
+                        if (isLoading)
+                          const Padding(
+                            padding: EdgeInsets.all(15.0),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          )
+                        else
+                          Expanded(
+                              child: ListView.builder(
+                                  itemCount: (acceptedRequest.isEmpty)
+                                      ? 1
+                                      : acceptedRequest.length,
+                                  itemBuilder: (context, index) {
+                                    if (acceptedRequest.isEmpty) {
+                                      return Center(
+                                        child: Column(
+                                          children: [
+                                            Image.asset(
+                                              "images/noTrips.jpg",
+                                              height: 140,
+                                            ),
+                                            const SizedBox(
+                                              height: 5,
+                                            ),
+                                            const Text(
+                                              "YOU HAVE NO BOOKED TRIPS FOR NOW!!!",
+                                              style: TextStyle(
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      Future<String?> pickUp =
+                                          getPickUpLoctionString(
+                                              acceptedRequest[index]);
 
-                                    return Padding(
-                                      padding: const EdgeInsets.only(left:25.0, right: 20.0),
-                                      child: Column(
-                                        children: [
-                                          ListTile(
-                                            title : FutureBuilder<String?>(
-                                              future: pickUp,
-                                              builder: (BuildContext context, AsyncSnapshot<String?> snapshot) {
-                                                if (snapshot.hasData) {
-                                                  return Text('To: ${snapshot.data}' ?? '',
-                                                  style: TextStyle(
-                                                    fontSize: 14
-                                                  ),);
-                                                } else {
-                                                  return Text('Retrieving Location...');
-                                                }
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                            left: 25.0, right: 20.0),
+                                        child: Column(
+                                          children: [
+                                            ListTile(
+                                              title: FutureBuilder<String?>(
+                                                future: pickUp,
+                                                builder: (BuildContext context,
+                                                    AsyncSnapshot<String?>
+                                                        snapshot) {
+                                                  if (snapshot.hasData) {
+                                                    return Text(
+                                                      'To: ${snapshot.data}',
+                                                      style: const TextStyle(
+                                                          fontSize: 14),
+                                                    );
+                                                  } else {
+                                                    return const Text(
+                                                        'Retrieving Location...');
+                                                  }
+                                                },
+                                              ),
+                                              subtitle: const Text(
+                                                "3:00 PM",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              trailing: const Icon(
+                                                  Icons.navigate_next),
+                                              onTap: () {
+                                                Navigator.of(context)
+                                                    .push(MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      MyBookedTrips(
+                                                          request:
+                                                              acceptedRequest[
+                                                                  index]),
+                                                ));
                                               },
                                             ),
-                                            subtitle:Text("3:00 PM",
-                                              style: const TextStyle(
-                                                fontSize: 14,
-                                              ),),
-
-                                            trailing: const Icon(Icons.navigate_next),
-                                            onTap: (){
-                                               Navigator.of(context).push(MaterialPageRoute(
-                                               builder: (context) => MyBookedTrips(request:acceptedRequest[index]),
-                                               ));
-                                            },
-                                          ),
-                                          Divider(),
-                                        ],
-                                      ),
-                                    );
-                                  }
-                                })),
+                                            const Divider(),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  })),
                       ],
                     ),
                   ],
@@ -443,13 +460,15 @@ class _DashboardState extends State<Dashboard> {
 
   Future<String> getPickUpLoctionString(Request request) async {
     final ref = FirebaseDatabase.instance.ref();
-    final snapshot = await ref.child('trips/${request.tripID}/destinationLocation').get();
+    final snapshot =
+        await ref.child('trips/${request.tripID}/destinationLocation').get();
     if (snapshot.exists) {
       return snapshot.value.toString();
     } else {
       return '';
     }
   }
+
   Future<void> getPlaceDirection() async {
     var initialPos =
         Provider.of<AppData>(context, listen: false).pickUpLocation;

@@ -1,3 +1,4 @@
+import 'package:car_pool_driver/Views/tabPages/myRequests_tab.dart';
 import 'package:flutter/material.dart';
 
 import '../Views/tabPages/dashboard.dart';
@@ -30,7 +31,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
     // TODO: implement initState
     super.initState();
 
-    tabController = TabController(length: 3, vsync: this);
+    tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -42,6 +43,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
         children: const [
           Dashboard(),
           TripHistoryTabPage(),
+          MyRequests(),
           ProfileTabPage(),
         ],
       ),
@@ -57,15 +59,19 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
             icon: Icon(Icons.car_rental),
             label: "Trip History",
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt),
+            label: "Requests",
+          ),
 
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
             label: "Settings",
           ),
         ],
-        unselectedItemColor: Colors.white54,
-        selectedItemColor: Colors.white,
-        backgroundColor: Colors.black,
+        unselectedItemColor: Colors.grey,
+        selectedItemColor: Colors.greenAccent,
+        backgroundColor: Colors.white,
         type: BottomNavigationBarType.fixed,
         selectedLabelStyle: const TextStyle(fontSize: 14),
         showUnselectedLabels: true,

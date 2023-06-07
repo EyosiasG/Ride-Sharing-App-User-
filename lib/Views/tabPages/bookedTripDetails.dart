@@ -203,18 +203,20 @@ class _MyBookedTripsState extends State<MyBookedTrips> {
       dataSnapshot.snapshot.value as Map<dynamic, dynamic>;
       values.forEach((key, value) {
         final item = Driver(
-            id: value['id'],
-            imagePath: value['driver_image'],
-            name: value['name'],
-            email: value['email'],
-            phone: value['phone'],
-            ratings: '4.5',
-            totalMileage: '6.4km',
-            carMake: value['car_make'],
-            carModel: value['car_model'],
-            carYear: value['car_year'],
-            carPlateNo: value['car_plateNo'],
-            carColor: value['car_color'],);
+          id: value['id'],
+          imagePath: value['driver_image'],
+          name: value['name'],
+          email: value['email'],
+          phone: value['phone'],
+          totalMileage: '6.4km',
+          carMake: value['car_make'],
+          carModel: value['car_model'],
+          carYear: value['car_year'],
+          carPlateNo: value['car_plateNo'],
+          carColor: value['car_color'],
+          rating: '',
+          noOfRatings: ''
+        );
         itemList.add(item);
       });
     } catch (e) {
@@ -253,6 +255,10 @@ class _MyBookedTripsState extends State<MyBookedTrips> {
           pickUpLocation: value['pickUpLocation'],
           price: value['price'],
           userIDs: passengerIDs,
+          date: value['date'],
+          time: value['time'],
+            availableSeats: value['availableSeats'],
+          passengers: value['passengers'],
             );
         itemList.add(item);
       });
@@ -392,7 +398,7 @@ class _MyBookedTripsState extends State<MyBookedTrips> {
                                   Icons.star,
                                   color: Colors.amber,
                                 ),
-                                rating: double.parse(driver[0].ratings),
+                                rating: 1,
                                 itemSize: 18,
                               ),
                             ),
